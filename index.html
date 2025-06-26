@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <!-- ===================================================== -->
+  <!-- Basic meta tags – fill in the social banners later.  -->
+  <!-- ===================================================== -->
+  <meta name="description" content="Diffusion Tree Sampling (DTS) turns a pretrained diffusion model into an anytime tree‑search sampler that matches or beats SMC with up to 5× fewer model calls.">
+  <meta name="keywords"    content="Diffusion Tree Sampling, diffusion models, tree search, sampling, Bayesian inference">
+  <meta name="viewport"    content="width=device-width, initial-scale=1">
+  <title>Diffusion Tree Sampling</title>
+
+  <!-- ===================================================== -->
+  <!-- SEO Meta Tags                                         -->
+  <!-- ===================================================== -->
+  <title>Diffusion Tree Sampling: Scalable Inference-Time Alignment of Diffusion Models | DTS Research</title>
+  <meta name="description" content="Diffusion Tree Sampling (DTS) turns pretrained diffusion models into anytime tree-search samplers that match or beat SMC with up to 10× fewer model calls. Scalable inference-time alignment for text-to-image generation, language completion, and class-conditional generation.">
+  <meta name="keywords" content="diffusion models, generative diffusion, denoising diffusion probabilistic models, stable diffusion, diffusion language models, text-to-image generation, text-to-image diffusion, language completion, diffusion text generation, tree search, Monte Carlo Tree Search, MCTS, best-of-N sampling, sequential Monte Carlo, SMC, sampling algorithms, anytime algorithm, inference-time alignment, test-time alignment, test-time optimization, test-time search, reward-guided generation, compute-efficient sampling, compute-efficient inference, AI alignment, search algorithms, Bayesian inference, generative AI, machine learning research, deep learning, artificial intelligence, neural networks, compute efficiency, FID score, NFE optimization, prompt optimization, aesthetic reward, diffusion probabilistic models, branch and bound sampling, guided diffusion, posterior sampling">
+  <meta name="author" content="Vineet Jain, Kusha Sareen, Mohammad Pedramfar, Siamak Ravanbakhsh">
+  <meta name="robots" content="index, follow">
+  <meta name="googlebot" content="index, follow">
+  <link rel="canonical" href="https://diffusion-tree-sampling.github.io/">
+  
+  <!-- ===================================================== -->
+  <!-- Open Graph / Facebook                                 -->
+  <!-- ===================================================== -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://diffusion-tree-sampling.github.io/">
+  <meta property="og:title" content="Diffusion Tree Sampling: Scalable Inference-Time Alignment of Diffusion Models">
+  <meta property="og:description" content="Anytime tree-search algorithm for diffusion models with up to 10× compute efficiency gains. Outperforms baselines on image generation and text completion.">
+  <meta property="og:image" content="https://diffusion-tree-sampling.github.io/static/images/og_image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:site_name" content="Diffusion Tree Sampling Research">
+  
+  <!-- ===================================================== -->
+  <!-- Twitter Card                                          -->
+  <!-- ===================================================== -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://diffusion-tree-sampling.github.io/">
+  <meta name="twitter:title" content="Diffusion Tree Sampling: Scalable Inference-Time Alignment">
+  <meta name="twitter:description" content="Anytime tree-search algorithm for diffusion models with up to 10× compute efficiency gains. Outperforms baselines on image generation and text completion.">
+  <meta name="twitter:image" content="https://diffusion-tree-sampling.github.io/static/images/twitter_card.png">
+  <meta name="twitter:creator" content="@vineetjain96">
+  
+  <!-- ===================================================== -->
+  <!-- Academic/Research specific                            -->
+  <!-- ===================================================== -->
+  <meta name="citation_title" content="Diffusion Tree Sampling: Scalable inference-time alignment of diffusion models">
+  <meta name="citation_author" content="Jain, Vineet">
+  <meta name="citation_author" content="Sareen, Kusha">
+  <meta name="citation_author" content="Pedramfar, Mohammad">
+  <meta name="citation_author" content="Ravanbakhsh, Siamak">
+  <meta name="citation_publication_date" content="2025">
+  <meta name="citation_pdf_url" content="https://diffusion-tree-sampling.github.io/static/pdfs/Diffusion_Tree_Sampling.pdf">
+  <meta name="citation_abstract_html_url" content="https://diffusion-tree-sampling.github.io/">
+  <meta name="citation_language" content="en">
+  <meta name="citation_keywords" content="diffusion models; tree search; inference-time alignment; anytime algorithm; Monte Carlo Tree Search">
+  
+  <!-- ===================================================== -->
+  <!-- Google Analytics 4                                    -->
+  <!-- ===================================================== -->
+  <!-- Replace GA_MEASUREMENT_ID with your actual GA4 Measurement ID -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'GA_MEASUREMENT_ID', {
+      page_title: 'Diffusion Tree Sampling',
+      page_location: window.location.href,
+      content_group1: 'Research Paper',
+      content_group2: 'Machine Learning',
+      content_group3: 'Diffusion Models'
+    });
+  </script>
+
+  <!-- Fonts & CSS -->
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/favicon.svg">
+
+  <!-- JS Deps -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+
+  <!-- MathJax for LaTeX math rendering -->
+  <script>
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true,
+        processEnvironments: true
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+      }
+    };
+  </script>
+  <script async src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <!-- Custom Slider Styling -->
+  <style>
+    /* No custom styling needed - using clean Bulma slider */
+  </style>
+  
+  <!-- ===================================================== -->
+  <!-- Structured Data (JSON-LD)                            -->
+  <!-- ===================================================== -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ScholarlyArticle",
+    "headline": "Diffusion Tree Sampling: Scalable inference-time alignment of diffusion models",
+    "description": "Diffusion Tree Sampling (DTS) turns a pretrained diffusion model into an anytime tree-search sampler that matches or beats SMC with up to 10× fewer model calls. Our method addresses inference-time alignment for diffusion models through a principled tree-search approach.",
+    "author": [
+      {
+        "@type": "Person",
+        "name": "Vineet Jain",
+        "url": "https://vineetjain96.github.io/",
+        "affiliation": {
+          "@type": "Organization",
+          "name": "Mila - Quebec Artificial Intelligence Institute"
+        }
+      },
+      {
+        "@type": "Person",
+        "name": "Kusha Sareen",
+        "url": "https://kushasareen.github.io/",
+        "affiliation": {
+          "@type": "Organization",
+          "name": "Mila - Quebec Artificial Intelligence Institute"
+        }
+      },
+      {
+        "@type": "Person",
+        "name": "Mohammad Pedramfar",
+        "url": "https://mila.quebec/en/directory/mohammad-pedramfar",
+        "affiliation": {
+          "@type": "Organization",
+          "name": "Mila - Quebec Artificial Intelligence Institute"
+        }
+      },
+      {
+        "@type": "Person",
+        "name": "Siamak Ravanbakhsh",
+        "url": "https://siamak.page/",
+        "affiliation": {
+          "@type": "Organization",
+          "name": "Mila - Quebec Artificial Intelligence Institute"
+        }
+      }
+    ],
+    "datePublished": "2025",
+    "url": "https://diffusion-tree-sampling.github.io/",
+    "image": "https://diffusion-tree-sampling.github.io/static/images/og_image.png",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Mila - Quebec Artificial Intelligence Institute",
+      "url": "https://mila.quebec/"
+    },
+    "keywords": "diffusion models, generative diffusion, stable diffusion, denoising diffusion probabilistic models, tree search, Monte Carlo Tree Search, sampling algorithms, inference-time alignment, test-time optimization, test-time search, anytime algorithm, reward-guided generation, diffusion language models, text-to-image generation, language completion, sequential Monte Carlo, best-of-N sampling, compute-efficient sampling, AI alignment",
+    "abstract": "Adapting a pretrained diffusion model to new objectives at inference time remains an open problem in generative modeling. Existing steering methods suffer from inaccurate value estimation, especially at high noise levels, which biases guidance. Moreover, information from past runs is not reused to improve sample quality, resulting in inefficient use of compute. Inspired by the success of Monte Carlo Tree Search, we address these limitations by casting inference-time alignment as a search problem that reuses past computations.",
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Diffusion Models"
+      },
+      {
+        "@type": "Thing", 
+        "name": "Machine Learning"
+      },
+      {
+        "@type": "Thing",
+        "name": "Artificial Intelligence"
+      },
+      {
+        "@type": "Thing",
+        "name": "Tree Search Algorithms"
+      },
+      {
+        "@type": "Thing",
+        "name": "Text-to-Image Generation"
+      }
+    ],
+    "citation": {
+      "@type": "CreativeWork",
+      "name": "Diffusion Tree Sampling: Scalable inference-time alignment of diffusion models"
+    }
+  }
+  </script>
+
+  <!-- Additional article tags for improved SEO keyword association -->
+  <meta property="article:tag" content="diffusion models">
+  <meta property="article:tag" content="generative diffusion">
+  <meta property="article:tag" content="stable diffusion">
+  <meta property="article:tag" content="diffusion language models">
+  <meta property="article:tag" content="inference-time alignment">
+  <meta property="article:tag" content="test-time optimization">
+  <meta property="article:tag" content="tree search">
+  <meta property="article:tag" content="Monte Carlo Tree Search">
+  <meta property="article:tag" content="anytime algorithm">
+  <meta property="article:tag" content="sampling algorithms">
+  <meta property="article:tag" content="test-time search">
+</head>
+<body>
+
+<!-- ===================================================== -->
+<!-- NAVBAR                                                -->
+<!-- ===================================================== -->
+<!-- <nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+  </div>
+  <div class="navbar-menu">
+    <div class="navbar-start" style="flex-grow:1;justify-content:center;">
+      <a class="navbar-item" href="/"> <span class="icon"><i class="fas fa-home"></i></span></a>
+    </div>
+  </div>
+</nav> -->
+
+<!-- ===================================================== -->
+<!-- HERO  +  QUICK LINKS                                  -->
+<!-- ===================================================== -->
+<section class="hero">
+  <div class="hero-body">
+    <!-- Title breaking out of container -->
+    <div style="display: flex; justify-content: center; margin: 1rem 0;">
+      <div style="width: 70vw; max-width: 1200px; text-align: center;">
+        <h1 class="title is-1 publication-title">Diffusion Tree Sampling: Scalable <br>inference-time alignment of diffusion models</h1>
+        <!-- <h2 class="subtitle">Anytime tree‑search sampling for diffusion models</h2> -->
+      </div>
+    </div>
+    
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column is-12 has-text-centered">
+          <!-- ===== AUTHORS (edit as needed) ===== -->
+          <div class="is-size-4 publication-authors">
+            <span class="author-block"><a href="https://vineetjain96.github.io/">Vineet Jain</a></span>,&nbsp;&nbsp;&nbsp;
+            <span class="author-block"><a href="https://kushasareen.github.io/">Kusha Sareen</a></span>,&nbsp;&nbsp;&nbsp;
+            <span class="author-block"><a href="https://mila.quebec/en/directory/mohammad-pedramfar">Mohammad Pedramfar</a></span>,&nbsp;&nbsp;&nbsp;
+            <span class="author-block"><a href="https://siamak.page/">Siamak Ravanbakhsh</a></span>
+          </div>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">School of Computer Science, McGill University <br> Mila - Quebec Artificial Intelligence Institute</span>
+          </div>
+
+          <!-- ===== QUICK LINKS ===== -->
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <span class="link-block">
+                <a href="./static/pdfs/Diffusion_Tree_Sampling.pdf" class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="fas fa-file-pdf"></i></span><span>Paper</span></a>
+              </span>
+              <span class="link-block">
+                <a href="https://github.com/vineetjain96/Diffusion-Tree-Sampling" class="external-link button is-normal is-rounded is-dark"><span class="icon"><i class="fab fa-github"></i></span><span>Code (coming soon)</span></a>
+              </span>
+              <span class="link-block">
+                <a href="INSERT_ARXIV_LINK" class="external-link button is-normal is-rounded is-dark"><span class="icon"><i class="ai ai-arxiv"></i></span><span>arXiv</span></a>
+              </span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================== -->
+<!-- HERO TEASER VIDEO  (main hook)                        -->
+<!-- ===================================================== -->
+<section class="hero teaser">
+  <div class="hero-body">
+    <div class="has-text-centered" style="padding: 0rem 0;">
+      <video id="teaser" autoplay muted loop playsinline style="width: 80vw; max-width: 1400px; height: auto; display: block; margin: 0 auto;">
+        <source src="./static/videos/hero_loop.mp4" type="video/mp4">
+      </video>
+    </div>
+    <div class="container is-max-desktop">
+      <h2 class="subtitle has-text-centered">
+        Diffusion Tree Sampling is an <em>anytime algorithm</em> that performs a global search in the space of denoising trajectories, turning additional compute budget into steadily better samples. <br>Shown above: prompt "cat" with aesthetic reward.
+      </h2>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================================================== -->
+<!-- ABSTRACT                                              -->
+<!-- ===================================================== -->
+<section class="section has-background-light">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>Adapting a pretrained diffusion model to new objectives at inference time remains an open problem in generative modeling. Existing steering methods suffer from inaccurate value estimation, especially at high noise levels, which biases guidance. Moreover, information from past runs is not reused to improve sample quality, resulting in inefficient use of compute. Inspired by the success of Monte Carlo Tree Search, we address these limitations by casting inference-time alignment as a search problem that reuses past computations. We introduce a tree-based approach that <em>samples</em> from the reward-aligned target density by propagating terminal rewards back through the diffusion chain and iteratively refining value estimates with each additional generation. Our proposed method, Diffusion Tree Sampling (<span style="font-variant: small-caps;">DTS</span>), produces asymptotically exact samples from the target distribution in the limit of infinite rollouts, and its greedy variant, Diffusion Tree Search (<span style="font-variant: small-caps;">DTS$^\star$</span>) performs a global search for high reward samples. On MNIST and CIFAR-10 class-conditional generation, <span style="font-variant: small-caps;">DTS</span> matches the FID of the best-performing baseline with up to $10\times$ less compute. In text-to-image generation and language completion tasks, <span style="font-variant: small-caps;">DTS$^\star$</span> effectively searches for high reward samples that match best-of-N with up to $5\times$ less compute. By reusing information from previous generations, we get an <em>anytime algorithm</em> that turns additional compute budget into steadily better samples, providing a scalable approach for inference-time alignment of diffusion models.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================== -->
+<!-- COMPUTE‑SCALING PLOT                                  -->
+<!-- ===================================================== -->
+<section class="section">
+  <!-- <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Key Results</h2>
+  </div> -->
+  <!-- Images extending beyond container -->
+  <div style="display: flex; justify-content: center; margin: 1rem 0;">
+    <div class="columns is-variable is-1" style="width: 80vw; max-width: none; padding: 0 1rem;">
+      <div class="column is-5">
+        <!-- <h3 class="title is-4 has-text-centered">Compute-Efficiency</h3> -->
+        <div class="content has-text-centered">
+          <img src="./static/images/imagereward_intro_plot.png" alt="Reward vs NFEs" style="width: 100%; height: auto; display: block; margin: 0 auto;"/>
+          <!-- <p>Diffusion Tree Sampling matches the strongest baseline with up to 5× fewer model calls.</p> -->
+        </div>
+      </div>
+      <div class="column is-7">
+        <!-- <h3 class="title is-4 has-text-centered">Method Comparison</h3> -->
+        <div class="content has-text-centered">
+          <img src="./static/images/sd_images.png" alt="Image samples for different methods" style="width: 100%; height: auto; display: block; margin: 0 auto;"/>
+          <!-- <p>Comparison across diverse prompts. Rows show different methods, columns show different prompt types.</p> -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; justify-content: center; margin: 1rem 0;">
+    <div class="columns is-variable is-1" style="width: 80vw; max-width: none; padding: 0 1rem; margin-left: -3.6vw;">
+      <div class="column" style="flex: 0 0 44%;">
+        <!-- <h3 class="title is-4 has-text-centered">Compute-Efficiency</h3> -->
+        <div class="content has-text-centered">
+          <img src="./static/images/mdlm_intro_plot.png" alt="Reward vs NFEs" style="width: 100%; height: auto; display: block; margin: 0 auto;"/>
+          <!-- <p>Diffusion Tree Sampling matches the strongest baseline with up to 5× fewer model calls.</p> -->
+        </div>
+      </div>
+      <div class="column" style="flex: 0 0 58%; margin-top: 1.5rem;">
+        <!-- <h3 class="title is-4 has-text-centered">Method Comparison</h3> -->
+        <div class="content has-text-centered">
+          <img src="./static/images/mdlm_samples.png" alt="Text samples for different methods" style="width: 100%; height: auto; display: block; margin: 0 auto;"/>
+          <!-- <p>Comparison across diverse prompts. Rows show different methods, columns show different prompt types.</p> -->
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================== -->
+<!-- DIAGRAM PROGRESSION SLIDER                            -->
+<!-- ===================================================== -->
+<section class="section has-background-light">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Scaling inference budget</h2>
+  </div>
+  
+  <!-- Large Image Display -->
+  <div style="display: flex; justify-content: center; margin: 2rem 0;">
+    <div style="width: 78vw; max-width: none;">
+      <img id="diagram-image" src="./static/images/diagram_diff.001.png" alt="Scaling inference budget - 1,000 NFEs" style="width: 100%; height: auto; display: block; margin: 0 auto;"/>
+    </div>
+  </div>
+  
+  <div class="container is-max-desktop">
+    <div class="content has-text-centered">
+      <!-- Clean Slider -->
+      <div class="field">
+        <div class="control">
+          <input class="slider is-fullwidth is-large is-info"
+                 id="interpolation-slider"
+                 step="1" min="1" max="7" value="1" type="range">
+        </div>
+      </div>
+      
+      <!-- Step Labels -->
+      <div style="display: flex; justify-content: space-between; margin-top: 1rem; font-size: 1.1rem;">
+        <span>1,000 NFEs</span>
+        <span></span>
+        <span>→</span>
+        <span style="font-weight: 500;">Inference budget</span>
+        <span>→</span>
+        <span></span>
+        <span>100,000 NFEs</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================== -->
+<!-- METHOD COMPARISON DIAGRAM                             -->
+<!-- ===================================================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Approach Overview</h2>
+    <div class="content has-text-centered">
+      <img src="./static/images/schematic.png" alt="Comparison of Best-of-N, SMC, and DTS" style="max-width:100%; display: block; margin: 0 auto;"/>
+      <p><strong>Left:</strong> Best-of-N denoises multiple samples using the base diffusion model and selects the one with the highest reward. <br><strong>Center:</strong> SMC maintains a population of particles and resamples based on an estimate of the value function. <br><strong>Right:</strong> DTS and DTS* maintain a tree that accumulates information across multiple rollouts and backs up the terminal reward to refine value estimates. The diagram illustrates the four phases: selection, expansion, rollout, and backup.</p>
+    </div>
+    <hr />
+    <div class="content">  
+      <p>
+        Our method starts from two concrete desiderata for inference-time steering:
+      </p>
+      <ul>
+        <li><strong>(D1)</strong> exploit low-noise timesteps—where rewards are trustworthy—to revise earlier, high-noise decisions;</li>
+        <li><strong>(D2)</strong> turn extra compute into <em>better</em> samples rather than merely more particles, yielding an anytime algorithm.</li>
+      </ul>
+      
+      <h4>Reverse diffusion as a search tree</h4>
+      
+      <p>
+        Because the learned reverse chain $p_\theta(x_{t-1} | x_t)$ is Markov with finite horizon $T$,
+        we reinterpret the denoising process as a depth-$T$ tree in $\mathbb{R}^d$. A node at depth $t$ stores the noisy latent
+        $x_t$, a running soft-value estimate $\hat{v}(x_t)$, and a visit count; each edge is a stochastic
+        denoising step. This framing allows us to keep track of information across multiple denoising trajectories, including
+        estimates of the soft value function, which helps with global credit assignment.
+      </p>
+      
+      <h4>Diffusion Tree Sampling &amp; Search</h4>
+      
+      <p>
+        Tree traversal alternates <strong>selection → expansion → rollout → backup</strong>:
+      </p>
+      <ol>
+        <li><strong>Selection:</strong> Starting from the root, sample children according to a Boltzmann policy $\propto \exp(\lambda \hat{v}(\cdot))$.</li>
+        <li><strong>Expansion:</strong> If the selected node has fewer children than the maximum and $t > 0$, draw a new child from $x_{t-1} \sim p_\theta(\cdot | x_t)$.</li>
+        <li><strong>Rollout:</strong> From the newly created node, perform a rollout till $x_0$ using $p_\theta$; every intermediate state is appended to the tree.</li>
+        <li><strong>Backup:</strong> Evaluate terminal reward $r(x_0)$ and update value estimates along the path using the soft Bellman backup.</li>
+      </ol>
+      
+      <p>
+        Repeating this loop yields <strong>Diffusion Tree Sampling (DTS)</strong>, an <em>anytime</em> sampler whose
+        empirical distribution provably converges to the target density
+        $p_\theta(x) \exp(r(x))$. Switching the selection rule to greedy maximization produces
+        <strong>Diffusion Tree Search (DTS$^\star$)</strong> to find high reward samples without over-optimization — no other code changes required.
+      </p>
+      
+      <!-- <h3>Why it matters</h3>
+      
+      <ul>
+        <li><strong>Theoretically grounded</strong>: under bounded rewards and $\lambda > 0$, DTS is asymptotically consistent.</li>
+        <li><strong>Cross-domain efficacy</strong>: on 2-D navigation, class-conditional ImageNet (64²) generation, and
+            conditional text synthesis, DTS delivers higher log-likelihoods, better FID, and larger task rewards than
+            best-of-N diffusion, particle-filter SMC, and classifier-free guidance—at identical compute budgets.</li>
+        <li><strong>Anytime behaviour</strong>: partial trees already outperform baselines; more iterations sharpen samples rather than just multiplying them.</li>
+        <li><strong>Unified interface</strong>: one algorithm, two modes—sample from the posterior or hunt the MAP—controlled by a single line in the selection policy.</li>
+      </ul>
+      
+      <p>
+        In short, Diffusion Tree Sampling/Search turns reverse diffusion into a principled tree-search problem, giving researchers a scalable, credit-aware alternative to both naïve best-of-N sampling and population-based SMC, with demonstrated gains on image, text, and low-dimensional tasks.
+      </p> -->
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================== -->
+<!-- CAROUSEL OF SAMPLES                                 -->
+<!-- ===================================================== -->
+<section class="section has-background-light" style="padding-top: 0rem; padding-bottom: 0rem;">
+  <div class="container is-max-desktop">
+    <!-- <h2 class="title is-3 has-text-centered">More Samples</h2> -->
+    <div class="hero-body">
+      <div id="results-carousel" class="carousel results-carousel">
+        <!-- Repeat .item blocks for as many samples as you like -->
+        <div class="item">
+          <img src="./static/images/sd_carousel1.png" alt="SD images with different artistic styles"/>
+          <h2 class="subtitle has-text-centered">Text-to-Image: Artistic style</h2>
+        </div>
+        <div class="item">
+          <img src="./static/images/sd_carousel2.png" alt="SD images with different object counts"/>
+          <h2 class="subtitle has-text-centered">Text-to-Image: Object counts</h2>
+        </div>
+        <div class="item">
+          <img src="./static/images/sd_carousel3.png" alt="SD images with different spatial relationships"/>
+          <h2 class="subtitle has-text-centered">Text-to-Image: Spatial relationships</h2>
+        </div>
+        <div class="item">
+          <img src="./static/images/mdlm_text_samples.png" alt="Text samples for different methods"/>
+          <h2 class="subtitle has-text-centered">Text completion</h2>
+        </div>
+
+        <!-- Add more items as needed -->
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================== -->
+<!-- CLASS-CONDITIONAL GENERATION (MNIST/CIFAR)           -->
+<!-- ===================================================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <details>
+      <summary class="title is-3 has-text-centered" style="cursor: pointer; list-style: none; position: relative; padding-right: 0rem;">
+        <span>Class-Conditional Generation</span>
+        <span class="collapse-arrow" style="position: absolute; right: 0; top: 50%; transform: translateY(-50%); font-size: 1.5rem; transition: transform 0.3s ease;">▼</span>
+      </summary>
+      
+      <div class="collapsible-content" style="margin-top: 2rem;">
+        <!-- FID vs Compute Plot -->
+        <div class="content has-text-centered mb-5">
+          <img src="./static/images/img_results.png" alt="FID vs Compute for MNIST and CIFAR-10" style="max-width:100%; display: block; margin: 0 auto;"/>
+          <!-- <p style="margin-top: 1rem;">FID performance across different computational budgets for class-conditional generation.</p> -->
+        </div>
+        <!-- MNIST Samples -->
+        <div class="content has-text-centered mb-5">
+          <img src="./static/images/img_samples.png" alt="MNIST/CIFAR-10 sample comparisons" style="max-width:100%; display: block; margin: 0 auto;"/>
+          <!-- <p style="margin-top: 1rem;">MNIST sample comparisons across different methods.</p> -->
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ===================================================== -->
+<!-- 2D DATASET RESULTS                                    -->
+<!-- ===================================================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <details>
+      <summary class="title is-3 has-text-centered" style="cursor: pointer; list-style: none; position: relative; padding-right: 2rem;">
+        <span>2D Dataset Experiments</span>
+        <span class="collapse-arrow" style="position: absolute; right: 0; top: 50%; transform: translateY(-50%); font-size: 1.5rem; transition: transform 0.3s ease;">▼</span>
+      </summary>
+      
+      <div class="collapsible-content" style="margin-top: 2rem;">
+        <div class="content has-text-centered mb-5">
+          <img src="./static/images/twod_samples.png" alt="2D dataset experimental results" style="max-width:100%; display: block; margin: 0 auto;"/>
+          <!-- <p style="margin-top: 1rem;">Results on 2D datasets demonstrating the effectiveness of our tree-based sampling approach.</p> -->
+        </div>
+      </div>
+      <div class="collapsible-content" style="margin-top: 2rem;">
+        <div class="content has-text-centered mb-5">
+          <img src="./static/images/twod_results.png" alt="2D dataset experimental results" style="max-width:100%; display: block; margin: 0 auto;"/>
+          <!-- <p style="margin-top: 1rem;">Results on 2D datasets demonstrating the effectiveness of our tree-based sampling approach.</p> -->
+        </div>
+      </div>
+
+    </details>
+  </div>
+</section>
+
+
+<!-- ===================================================== -->
+<!-- BIBTEX                                               -->
+<!-- ===================================================== -->
+<!-- <section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    <pre><code>@article{INSERT_KEY,
+  title       = {Diffusion Tree Sampling: Scalable inference-time alignment of diffusion models},
+  author      = {Jain, Vineet and Sareen, Kusha and Pedramfar, Mohammad and Ravanbakhsh, Siamak},
+  booktitle   = {INSERT_VENUE},
+  year        = {2025},
+}</code></pre>
+  </div>
+</section> -->
+
+<!-- ===================================================== -->
+<!-- FOOTER                                               -->
+<!-- ===================================================== -->
+<footer class="footer">
+  <div class="container">
+    <div class="content has-text-centered">
+      <!-- PDF link icon -->
+      <a class="icon-link" href="./static/pdfs/Diffusion_Tree_Sampling.pdf"><i class="fas fa-file-pdf"></i></a>
+      <a class="icon-link" href="https://github.com/vineetjain96/Diffusion-Tree-Sampling"><i class="fab fa-github"></i></a>
+    </div>
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>This site is adapted from the <a href="https://github.com/nerfies/nerfies.github.io">Nerfies template</a>. Feel free to reuse it—just link back to this page in your footer.</p>
+          <p>Licensed under <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY‑SA 4.0</a>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- JavaScript for Slider -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const slider = document.getElementById('interpolation-slider');
+  const image = document.getElementById('diagram-image');
+  
+  function updateSlider() {
+    const value = parseInt(slider.value);
+    
+    // Update image
+    const step = value.toString().padStart(3, '0');
+    image.src = `./static/images/diagram_diff.${step}.png`;
+    image.alt = `Scaling inference budget - ${value === 1 ? '1,000' : value === 2 ? '2,500' : value === 3 ? '5,000' : value === 4 ? '10,000' : value === 5 ? '25,000' : value === 6 ? '50,000' : '100,000'} NFEs`;
+  }
+  
+  slider.addEventListener('input', updateSlider);
+  
+  // Handle collapsible sections arrow rotation
+  const detailsElements = document.querySelectorAll('details');
+  detailsElements.forEach(details => {
+    const arrow = details.querySelector('.collapse-arrow');
+    if (arrow) {
+      details.addEventListener('toggle', function() {
+        if (this.open) {
+          arrow.style.transform = 'translateY(-50%) rotate(180deg)';
+        } else {
+          arrow.style.transform = 'translateY(-50%) rotate(0deg)';
+        }
+      });
+    }
+  });
+});
+</script>
+
+</body>
+</html>
